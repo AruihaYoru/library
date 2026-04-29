@@ -1,0 +1,15 @@
+{
+  "name": "pac-core",
+  "type": "module",
+  "version": "0.1.0",
+  "files": [
+    "pac_core_bg.wasm",
+    "pac_core.js",
+    "pac_core.d.ts"
+  ],
+  "main": "pac_core.js",
+  "types": "pac_core.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}
