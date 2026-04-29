@@ -55,7 +55,7 @@
 
                     <!-- 合言葉入力エリア（カードごとに表示される） -->
                     <div class="password-portal" style="display: none;">
-                        <input type="text" class="pw-input" placeholder="合言葉（4文字）" maxlength="4">
+                        <input type="text" class="pw-input" placeholder="合言葉（4文字）" >
                         <div class="pw-status"></div>
                         <button class="btn-cancel">×</button>
                     </div>
@@ -114,7 +114,6 @@
             function closePortal() {
                 portal.classList.remove('active');
                 setTimeout(() => portal.style.display = 'none', 300);
-                pwInput.value = '';
                 pwStatus.textContent = '';
             }
 
@@ -144,7 +143,6 @@
                             }, 500);
                         } else {
                             pwStatus.textContent = 'DENIED';
-                            pwInput.value = '';
                         }
                     } catch (err) {
                         console.error(err);
