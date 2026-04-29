@@ -1,0 +1,317 @@
+:root {
+    --bg: #0a0a0b;
+    --paper: #f4f1ea;
+    --accent: #c16955;
+    --card-bg: #141416;
+    --text-main: #e8e8e8;
+    --text-muted: #71717a;
+    --transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: var(--bg);
+    color: var(--text-main);
+    font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+    overflow-x: hidden;
+    line-height: 1.6;
+}
+
+.noise {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    opacity: 0.04;
+    z-index: 1000;
+    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAMAAAAp4uUzAAAABlBMVEUAAAD///+l2Z/dAAAACXBIWXMAAAsTAAALEwEAmpwYAAAARElEQVQ4y2NgwAJYmFAAYxN6mBEHGG6AgRE9zIgDjDjAcAMMjOhhRhxgxAGGG2BgRA8z4gAjDjDcAAO6RjR1M7pGFHUAnmMBp99A8pYAAAAASUVORK5CYII=');
+}
+
+.app-wrapper {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 40px 20px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header */
+.archive-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 80px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.logo {
+    font-size: 0.7rem;
+    letter-spacing: 0.5rem;
+    color: var(--accent);
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.main-title {
+    font-family: 'Shippori Mincho', serif;
+    font-size: 2rem;
+    font-weight: 500;
+}
+
+.status-badge {
+    font-size: 0.6rem;
+    letter-spacing: 0.15rem;
+    border: 1px solid var(--accent);
+    padding: 4px 12px;
+    color: var(--accent);
+}
+
+/* Grid */
+.archive-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 40px;
+    flex-grow: 1;
+}
+
+/* Item Card */
+.archive-item {
+    background: var(--card-bg);
+    border-radius: 2px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid rgba(255,255,255,0.03);
+    transition: var(--transition);
+    overflow: hidden;
+}
+
+.archive-item:hover:not(.disabled) {
+    border-color: rgba(193, 105, 85, 0.4);
+    transform: translateY(-5px);
+}
+
+.item-visual {
+    height: 420px;
+    background: #1c1c1e;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+.redacted-overlay {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.lock-icon {
+    font-size: 2rem;
+    opacity: 0.2;
+}
+
+.censored-labels {
+    text-align: center;
+}
+
+.label-lg {
+    font-size: 2.5rem;
+    letter-spacing: 0.6rem;
+    color: #333;
+}
+
+.label-sm {
+    font-size: 0.8rem;
+    letter-spacing: 0.3rem;
+    color: #222;
+}
+
+.unlocked-content {
+    flex-direction: column;
+    align-items: center;
+    padding: 40px;
+    background: var(--accent);
+    width: 100%;
+    height: 100%;
+    animation: fadeIn 0.8s ease forwards;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+.title-jp {
+    font-family: 'Shippori Mincho', serif;
+    font-size: 2.2rem;
+    writing-mode: vertical-rl;
+    letter-spacing: 0.6rem;
+    color: var(--paper);
+    font-weight: 700;
+}
+
+.title-en {
+    margin-top: 20px;
+    font-size: 0.8rem;
+    letter-spacing: 0.2rem;
+    color: rgba(244, 241, 234, 0.7);
+}
+
+.item-meta {
+    padding: 30px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.censored-text {
+    font-size: 0.9rem;
+    color: #1a1a1a;
+    background: #1a1a1a;
+    user-select: none;
+    margin-bottom: 20px;
+}
+
+.unlocked-text {
+    font-size: 0.9rem;
+    line-height: 1.8;
+    color: var(--text-muted);
+    margin-bottom: 25px;
+    animation: fadeIn 1s ease forwards;
+}
+
+/* Buttons */
+.btn-unlock, .btn-read {
+    width: 100%;
+    padding: 12px;
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.1);
+    color: var(--text-main);
+    font-size: 0.7rem;
+    letter-spacing: 0.2rem;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.btn-unlock:hover {
+    background: rgba(255,255,255,0.05);
+    border-color: var(--accent);
+}
+
+.btn-read {
+    background: var(--accent);
+    border: none;
+    color: var(--paper);
+    font-weight: 600;
+}
+
+/* Password Portal */
+.password-portal {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(10, 10, 11, 0.95);
+    backdrop-filter: blur(10px);
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 30px;
+    transform: translateY(100%);
+    transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.password-portal.active {
+    transform: translateY(0);
+}
+
+.pw-input {
+    width: 100%;
+    max-width: 200px;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid var(--accent);
+    color: #fff;
+    font-size: 1.5rem;
+    text-align: center;
+    padding: 10px;
+    outline: none;
+    font-family: 'Shippori Mincho', serif;
+}
+
+.pw-status {
+    margin-top: 15px;
+    font-size: 0.6rem;
+    letter-spacing: 0.2rem;
+    color: var(--accent);
+    height: 1rem;
+}
+
+.btn-cancel {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+
+/* Placeholder */
+.empty {
+    background: repeating-linear-gradient(
+        45deg,
+        #141416,
+        #141416 10px,
+        #18181a 10px,
+        #18181a 20px
+    );
+}
+
+.placeholder-text {
+    color: #222;
+    font-style: italic;
+}
+
+/* Footer */
+.archive-footer {
+    margin-top: 100px;
+    padding-top: 40px;
+    border-top: 1px solid rgba(255,255,255,0.05);
+}
+
+.footer-inner {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .archive-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 20px;
+    }
+    .archive-grid {
+        grid-template-columns: 1fr;
+    }
+}

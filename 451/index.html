@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>或いは夜</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="noise-overlay"></div>
+    <div id="reader-container">
+        <header>
+            <h1></h1>
+            <div class="book-info">
+                <p class="original-title"></p>
+                <p class="author"></p>
+                <p class="year"></p>
+            </div>
+            <p class="metadata">訳：或いは夜</p>
+        </header>
+
+        <main id="main-content">
+            <div id="loading-message">
+                <p>原稿を読み込んでいます...</p>
+            </div>
+        </main>
+
+        <footer>
+            <p>（了）</p>
+        </footer>
+    </div>
+
+    <div id="password-overlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(244, 241, 234, 0.98); display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:10000; color:var(--text); writing-mode: horizontal-tb;">
+        <h1 style="margin-bottom: 2rem; font-family: 'Shippori Mincho', serif; letter-spacing: 4px; color: var(--grid);">合言葉を入力してください</h1>
+        <input type="password" id="reader-password" maxlength="4" placeholder="日本語4文字" style="font-size: 1.5rem; padding: 1rem; width: 300px; text-align: center; border: 2px solid var(--grid); background: #fff; color: var(--text); border-radius: 4px; outline: none;">
+        <div id="password-error" style="margin-top: 1rem; color: #c16955; font-size: 0.9rem; height: 1.2rem; font-family: 'Shippori Mincho', serif;"></div>
+    </div>
+
+    <script type="module">
+        import init, { decrypt } from '../core/pac_core.js';
+
+        // マウスホイールで横スクロール（縦書き対応）
+        window.addEventListener('wheel', (e) => {
+            if (Math.abs(e.deltaY) > 0) {
+                window.scrollBy({
+                    left: -e.deltaY,
+                    behavior: 'auto'
+                });
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        const passwordInput = document.getElementById('reader-password');
+        const passwordOverlay = document.getElementById('password-overlay');
+        const passwordError = document.getElementById('password-error');
+        const mainContent = document.getElementById('main-content');
+
+        // URLパラメータのチェック
+        const urlParams = new URLSearchParams(window.location.search);
+        const pParam = urlParams.get('p');
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            if (pParam && pParam.length === 4) {
+                try {
+                    await init();
+                    const success = await tryDecrypt(pParam);
+                    if (success) {
+                        passwordOverlay.style.display = 'none';
+                    }
+                } catch (err) {
+                    console.error('Auto-login failed', err);
+                }
+            }
+        });
+
+        passwordInput.addEventListener('input', async (e) => {
+            if (e.target.value.length === 4) {
+                const pw = e.target.value;
+                passwordError.textContent = '読み込み中...';
+                
+                try {
+                    await init();
+                    const success = await tryDecrypt(pw);
+                    if (success) {
+                        passwordOverlay.style.opacity = '0';
+                        setTimeout(() => passwordOverlay.style.display = 'none', 500);
+                    } else {
+                        passwordError.textContent = '合言葉が違います。';
+                        passwordInput.value = '';
+                    }
+                } catch (err) {
+                    console.error(err);
+                    passwordError.textContent = 'エラーが発生しました。';
+                }
+            }
+        });
+
+        async function tryDecrypt(pw) {
+            try {
+                // まずメタデータを取得して復号 (正誤判定を兼ねる)
+                const metaResponse = await fetch('meta.enc');
+                if (!metaResponse.ok) throw new Error('meta.enc not found');
+                const encryptedMeta = await metaResponse.text();
+                
+                const metaResult = decrypt(encryptedMeta, pw);
+                
+                if (metaResult.success) {
+                    const meta = JSON.parse(metaResult.data);
+                    
+                    // ヘッダーにデータを注入
+                    document.querySelector('header h1').textContent = meta.titleJp;
+                    document.querySelector('.original-title').textContent = meta.titleEn;
+                    document.querySelector('.author').textContent = meta.author || '';
+                    document.querySelector('.year').textContent = meta.year || '';
+                    document.title = `「${meta.titleJp}」 訳：或いは夜`;
+
+                    // 目録を取得
+                    const response = await fetch('chapters.json');
+                    const chapters = await response.json();
+                    
+                    // 全章ロード開始
+                    loadAllChapters(chapters, pw);
+                    return true;
+                }
+                return false;
+            } catch (e) {
+                console.error(e);
+                return false;
+            }
+        }
+
+        async function loadAllChapters(chapters, pw) {
+            mainContent.innerHTML = '';
+            
+            for (const ch of chapters) {
+                try {
+                    const encPath = `encrypted_chapters/${ch.path.split('/').pop()}`;
+                    const chResponse = await fetch(encPath);
+                    const encryptedStr = await chResponse.text();
+                    
+                    const result = decrypt(encryptedStr, pw);
+                    
+                    if (result.success) {
+                        const contentStr = result.data;
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(contentStr, 'text/html');
+                        const article = doc.querySelector('article');
+                        
+                        if (article) {
+                            mainContent.appendChild(article);
+                        } else {
+                            const newArticle = document.createElement('article');
+                            newArticle.innerHTML = contentStr;
+                            mainContent.appendChild(newArticle);
+                        }
+                    }
+                } catch (e) {
+                    console.error(`Failed to decrypt ${ch.title}`, e);
+                }
+            }
+        }
+    </script>
+</body>
+</html>

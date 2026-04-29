@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Archive: 或いは夜</title>
+    <link rel="stylesheet" href="index.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="noise"></div>
+    
+    <div class="app-wrapper">
+        <header class="archive-header">
+            <div class="brand-unit">
+                <div class="logo">ARCHIVE: OR_EV_NIGHT</div>
+                <h1 class="main-title">Translation Project</h1>
+            </div>
+            <nav class="meta-nav">
+                <span class="status-badge">ENCRYPTED REPOSITORY</span>
+            </nav>
+        </header>
+
+        <main class="archive-main">
+            <div class="archive-grid">
+                <!-- 内部ディレクトリ名に合わせる -->
+                <article class="archive-item" data-target="451" id="item-451">
+                    <div class="item-visual">
+                        <div class="redacted-overlay">
+                            <span class="lock-icon">🔒</span>
+                            <div class="censored-labels">
+                                <div class="label-lg">███████</div>
+                                <div class="label-sm">███████ ███████</div>
+                            </div>
+                        </div>
+                        <div class="unlocked-content" style="display: none;">
+                            <div class="title-jp" id="title-jp-451"></div>
+                            <div class="title-en" id="title-en-451"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="item-meta">
+                        <div class="meta-content">
+                            <div class="censored-text">██████████████████████████████████</div>
+                            <div class="unlocked-text" id="desc-451" style="display: none;"></div>
+                        </div>
+                        
+                        <div class="action-zone">
+                            <button class="btn-unlock">UNLOCK CHAPTER</button>
+                            <button class="btn-read" style="display: none;">READ NOW</button>
+                        </div>
+                    </div>
+
+                    <!-- 合言葉入力エリア（カードごとに表示される） -->
+                    <div class="password-portal" style="display: none;">
+                        <input type="text" class="pw-input" placeholder="合言葉（4文字）" maxlength="4">
+                        <div class="pw-status"></div>
+                        <button class="btn-cancel">×</button>
+                    </div>
+                </article>
+
+                <!-- Placeholder / Coming Soon -->
+                <article class="archive-item disabled">
+                    <div class="item-visual empty">
+                        <div class="redacted-overlay">
+                            <div class="censored-labels">
+                                <div class="label-sm">COMING SOON</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="item-meta">
+                        <div class="meta-content">
+                            <p class="placeholder-text">Meoow...</p>
+                        </div>
+                    </div>
+                </article>
+            </div>
+        </main>
+
+        <footer class="archive-footer">
+            <div class="footer-inner">
+                <p class="copyright">&copy; 2026 或いは夜</p>
+                <div class="security-notes">
+                    <!-- Nothing to declare -->
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script type="module">
+        document.querySelectorAll('.archive-item:not(.disabled)').forEach(item => {
+            const target = item.getAttribute('data-target');
+            const btnUnlock = item.querySelector('.btn-unlock');
+            const btnRead = item.querySelector('.btn-read');
+            const portal = item.querySelector('.password-portal');
+            const pwInput = item.querySelector('.pw-input');
+            const pwStatus = item.querySelector('.pw-status');
+            const btnCancel = item.querySelector('.btn-cancel');
+
+            btnUnlock.addEventListener('click', (e) => {
+                e.stopPropagation();
+                portal.style.display = 'flex';
+                setTimeout(() => portal.classList.add('active'), 10);
+                pwInput.focus();
+            });
+
+            btnCancel.addEventListener('click', (e) => {
+                e.stopPropagation();
+                closePortal();
+            });
+
+            function closePortal() {
+                portal.classList.remove('active');
+                setTimeout(() => portal.style.display = 'none', 300);
+                pwInput.value = '';
+                pwStatus.textContent = '';
+            }
+
+            pwInput.addEventListener('input', async (e) => {
+                if (e.target.value.length === 4) {
+                    const pw = e.target.value;
+                    pwStatus.textContent = 'DECRYPTING...';
+                    
+                    try {
+                        const modulePath = `./core/pac_core.js`;
+                        const { default: init, decrypt } = await import(modulePath);
+                        await init();
+                        
+                        // メタデータファイルを読み込み
+                        const metaResponse = await fetch(`${target}/meta.enc`);
+                        if (!metaResponse.ok) throw new Error('Meta file not found');
+                        const encryptedMeta = await metaResponse.text();
+                        
+                        // 復号
+                        const result = decrypt(encryptedMeta, pw);
+                        
+                        if (result.success) {
+                            pwStatus.textContent = 'SUCCESS';
+                            const meta = JSON.parse(result.data);
+                            setTimeout(() => {
+                                unlockItem(item, target, pw, meta);
+                            }, 500);
+                        } else {
+                            pwStatus.textContent = 'DENIED';
+                            pwInput.value = '';
+                        }
+                    } catch (err) {
+                        console.error(err);
+                        pwStatus.textContent = 'ERROR';
+                    }
+                }
+            });
+
+            function unlockItem(item, targetId, pw, meta) {
+                // 表示の切り替え
+                item.querySelector('.redacted-overlay').style.display = 'none';
+                item.querySelector('.unlocked-content').style.display = 'flex';
+                item.querySelector('.censored-text').style.display = 'none';
+                item.querySelector('.unlocked-text').style.display = 'block';
+                
+                // 復号されたデータの流し込み
+                item.querySelector('.title-jp').textContent = meta.titleJp;
+                item.querySelector('.title-en').textContent = meta.titleEn;
+                item.querySelector('.unlocked-text').textContent = meta.desc;
+                
+                // ボタンの切り替え
+                btnUnlock.style.display = 'none';
+                btnRead.style.display = 'block';
+                portal.style.display = 'none';
+                
+                item.classList.add('unlocked');
+
+                btnRead.onclick = () => {
+                    location.href = `${targetId}/index.html?p=${encodeURIComponent(pw)}`;
+                };
+            }
+        });
+    </script>
+</body>
+</html>

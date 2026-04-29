@@ -1,0 +1,13 @@
+**/chapters/
+**/*.txt
+**/project.define
+**/bak/
+
+# Encryption Engine Source (Rust/WASM)
+pac-core/
+
+# Node/Editor
+node_modules/
+.vscode/
+.idea/
+*.log
